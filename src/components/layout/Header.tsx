@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -21,8 +20,8 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 relative">
-              <Image src="/images/logo.png" alt="AxiomAI Logo" layout="fill" objectFit="contain" />
+            <div className="w-8 h-8 gradient-bg rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">A</span>
             </div>
             <span className="text-xl font-bold text-gradient">AxiomAI</span>
           </Link>

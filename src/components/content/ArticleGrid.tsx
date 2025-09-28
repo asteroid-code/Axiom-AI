@@ -1,38 +1,111 @@
-export default function ArticleGrid() {
-  const featuredArticles = [
-    {
-      id: 1,
-      title: "The Rise of Multi-Engine AI Systems",
-      excerpt: "How 8-engine consensus is changing content generation forever",
-      category: "AI Research",
-      readTime: "5 min read",
-      isFeatured: true
-    },
-    {
-      id: 2,
-      title: "Ultra-Resilient Architecture Explained",
-      excerpt: "Surviving multiple AI failures without compromising quality",
-      category: "Engineering",
-      readTime: "7 min read",
-      isFeatured: false
-    },
-    {
-      id: 3,
-      title: "Prompt Engineering at Scale",
-      excerpt: "Advanced techniques for multi-AI prompt optimization",
-      category: "Tutorial",
-      readTime: "4 min read",
-      isFeatured: false
-    },
-    {
-      id: 4,
-      title: "Zero-Cost AI Infrastructure",
-      excerpt: "Leveraging $5000+ free credits for production systems",
-      category: "Infrastructure",
-      readTime: "6 min read",
-      isFeatured: false
+'use client';
+
+import Link from 'next/link';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { getArticles } from '../../services/article';
+import { Article } from '../../types/article';
+
+const ARTICLES_PER_PAGE = 6;
+
+function ArticleCard({ title, content, image_url, created_at, url, trend_score, processed_by_ai, trending_topics }: Article) {
+  const formattedDate = new Date(created_at).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const getBadge = () => {
+    if (processed_by_ai) {
+      return <span className="px-3 py-1 bg-green-600 text-white rounded-full text-xs font-medium">AI Processed</span>;
     }
-  ]
+    if (trend_score > 70) {
+      return <span className="px-3 py-1 bg-yellow-600 text-white rounded-full text-xs font-medium">Trending</span>;
+    }
+    return <span className="px-3 py-1 bg-gray-600 text-white rounded-full text-xs font-medium">Raw</span>;
+  };
+
+  return (
+    <Link href={url} target="_blank" rel="noopener noreferrer" className="block glass-card rounded-2xl overflow-hidden hover-lift">
+      <div className="relative w-full h-48 bg-gray-800 flex items-center justify-center">
+        {image_url ? (
+          <Image src={image_url} alt={title} layout="fill" objectFit="cover" className="rounded-t-lg" />
+        ) : (
+          <span className="text-gray-500">No Image</span>
+        )}
+        <div className="absolute top-2 left-2">
+          {getBadge()}
+        </div>
+      </div>
+      <div className="p-6">
+        <h3 className="text-xl font-bold mb-2 text-primary">{title}</h3>
+        <p className="text-gray-300 text-sm mb-4 line-clamp-3">{content}</p>
+        <div className="flex items-center justify-between text-gray-500 text-xs">
+          <span>{formattedDate}</span>
+          {trending_topics && trending_topics.length > 0 && (
+            <span className="ml-2 px-2 py-1 bg-gray-700 rounded-full text-xs">
+              {trending_topics[0]}
+            </span>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function ArticleCardSkeleton() {
+  return (
+    <div className="glass-card rounded-2xl overflow-hidden animate-pulse">
+      <div className="relative w-full h-48 bg-gray-800"></div>
+      <div className="p-6">
+        <div className="h-6 bg-gray-700 rounded w-3/4 mb-2"></div>
+        <div className="h-4 bg-gray-700 rounded w-1/2 mb-4"></div>
+        <div className="h-4 bg-gray-700 rounded w-full mb-2"></div>
+        <div className="h-4 bg-gray-700 rounded w-5/6"></div>
+      </div>
+    </div>
+  );
+}
+
+export default function ArticleGrid() {
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    async function fetchArticles() {
+      try {
+        setLoading(true);
+        setError(null);
+        const fetchedArticles = await getArticles();
+        setArticles(fetchedArticles);
+        setTotalPages(Math.ceil(fetchedArticles.length / ARTICLES_PER_PAGE));
+      } catch (err) {
+        setError('Failed to load articles.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchArticles();
+  }, []);
+
+  const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE;
+  const currentArticles = articles.slice(startIndex, startIndex + ARTICLES_PER_PAGE);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
   return (
     <section className="py-16 bg-black">
@@ -56,51 +129,37 @@ export default function ArticleGrid() {
           </button>
         </div>
 
-        {/* Articles Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {featuredArticles.map((article) => (
-            <article
-              key={article.id}
-              className={`glass-card rounded-2xl overflow-hidden hover-lift ${
-                article.isFeatured ? 'lg:col-span-2' : ''
-              }`}
-            >
-              <div className={`flex flex-col ${article.isFeatured ? 'lg:flex-row' : ''}`}>
-                {/* Image Placeholder */}
-                <div className={`bg-gradient-to-br from-[#0066ff] to-[#8b5cf6] ${
-                  article.isFeatured ? 'lg:w-1/2 h-64 lg:h-auto' : 'h-48'
-                }`}></div>
+        {error && <div className="text-red-500 text-center py-8">{error}</div>}
 
-                {/* Content */}
-                <div className={`p-6 flex-1 ${
-                  article.isFeatured ? 'lg:w-1/2' : ''
-                }`}>
-                  <div className="flex items-center space-x-4 mb-3">
-                    <span className="px-3 py-1 bg-gray-800 text-gray-300 rounded-full text-sm font-medium">
-                      {article.category}
-                    </span>
-                    <span className="text-gray-500 text-sm">{article.readTime}</span>
-                  </div>
-
-                  <h3 className={`font-bold text-white mb-3 ${
-                    article.isFeatured ? 'text-2xl lg:text-3xl' : 'text-xl'
-                  }`}>
-                    {article.title}
-                  </h3>
-
-                  <p className="text-gray-400 mb-4 leading-relaxed">
-                    {article.excerpt}
-                  </p>
-
-                  <button className="text-[#0066ff] hover:text-[#8b5cf6] transition-colors font-medium">
-                    Read Full Article →
-                  </button>
-                </div>
-              </div>
-            </article>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {loading
+            ? Array.from({ length: ARTICLES_PER_PAGE }).map((_, i) => <ArticleCardSkeleton key={i} />)
+            : currentArticles.map((article) => <ArticleCard key={article.id} {...article} />)}
         </div>
+
+        {/* Pagination */}
+        {!loading && articles.length > 0 && (
+          <div className="flex justify-center items-center space-x-4 mt-12">
+            <button
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <span className="text-gray-400">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </section>
-  )
+  );
 }
