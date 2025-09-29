@@ -3,11 +3,13 @@ import { Article } from '../types/article';
 
 export async function getArticleById(id: string): Promise<Article | null> {
   try {
-    const { data, error } = await supabase
+    console.log('🔍 Ejecutando query getArticleById...');
+    const { data, error, status } = await supabase
       .from('articles')
       .select('id, title, content, content_es, image_url, source, created_at, processed_by_ai, url, related_products, title_es')
       .eq('id', id)
       .single();
+    console.log('📊 Status getArticleById:', status, 'Error:', error, 'Data:', data);
 
     if (error) throw error;
     return data;
@@ -19,10 +21,12 @@ export async function getArticleById(id: string): Promise<Article | null> {
 
 export async function getAllArticles(): Promise<Article[]> {
   try {
-    const { data, error } = await supabase
+    console.log('🔍 Ejecutando query getAllArticles...');
+    const { data, error, status } = await supabase
       .from('articles')
       .select('id, title, content, content_es, image_url, source, created_at, processed_by_ai, url, related_products, title_es')
       .order('created_at', { ascending: false });
+    console.log('📊 Status getAllArticles:', status, 'Error:', error, 'Data:', data);
 
     if (error) throw error;
     return data || [];
@@ -35,11 +39,13 @@ export async function getAllArticles(): Promise<Article[]> {
 
 export async function getArticleCategories(): Promise<{ category: string; count: number }[]> {
   try {
-    const { data, error } = await supabase
+    console.log('🔍 Ejecutando query getArticleCategories...');
+    const { data, error, status } = await supabase
       .from('articles')
       .select('category', { count: 'exact' })
       .not('category', 'is', null)
       .returns<{ category: string }[]>();
+    console.log('📊 Status getArticleCategories:', status, 'Error:', error, 'Data:', data);
 
     if (error) throw error;
 
@@ -59,12 +65,14 @@ export async function getArticleCategories(): Promise<{ category: string; count:
 
 export async function getTrendingTopics(): Promise<{ topic: string; count: number }[]> {
   try {
-    const { data, error } = await supabase
+    console.log('🔍 Ejecutando query getTrendingTopics...');
+    const { data, error, status } = await supabase
       .from('articles')
       .select('trending_topics')
       .not('trending_topics', 'is', null)
       .gt('trend_score', 70) // As per user's requirement for trending
       .limit(10); // Limit to top 10 trending articles for topic extraction
+    console.log('📊 Status getTrendingTopics:', status, 'Error:', error, 'Data:', data);
 
     if (error) throw error;
 
@@ -92,21 +100,27 @@ export async function getTrendingTopics(): Promise<{ topic: string; count: numbe
 
 export async function getArticleStats(): Promise<{ total: number; aiProcessed: number; rawContent: number }> {
   try {
-    const { count: totalArticles, error: totalError } = await supabase
+    console.log('🔍 Ejecutando query getArticleStats...');
+    const { count: totalArticles, error: totalError, status: totalStatus } = await supabase
       .from('articles')
       .select('*', { count: 'exact', head: true });
+    console.log('📊 Status getArticleStats (total):', totalStatus, 'Error:', totalError, 'Count:', totalArticles);
     if (totalError) throw totalError;
 
-    const { count: aiProcessedArticles, error: aiError } = await supabase
+    console.log('🔍 Ejecutando query getArticleStats (aiProcessed)...');
+    const { count: aiProcessedArticles, error: aiError, status: aiStatus } = await supabase
       .from('articles')
       .select('*', { count: 'exact', head: true })
       .eq('processed_by_ai', true);
+    console.log('📊 Status getArticleStats (aiProcessed):', aiStatus, 'Error:', aiError, 'Count:', aiProcessedArticles);
     if (aiError) throw aiError;
 
-    const { count: rawContentArticles, error: rawError } = await supabase
+    console.log('🔍 Ejecutando query getArticleStats (rawContent)...');
+    const { count: rawContentArticles, error: rawError, status: rawStatus } = await supabase
       .from('articles')
       .select('*', { count: 'exact', head: true })
       .eq('processed_by_ai', false);
+    console.log('📊 Status getArticleStats (rawContent):', rawStatus, 'Error:', rawError, 'Count:', rawContentArticles);
     if (rawError) throw rawError;
 
     return {
@@ -133,6 +147,7 @@ export async function searchArticles(
   }
 ): Promise<Article[]> {
   try {
+    console.log('🔍 Ejecutando query searchArticles...');
     let dbQuery = supabase.from('articles').select('*');
 
     // Apply search query
@@ -188,7 +203,8 @@ export async function searchArticles(
 
     dbQuery = dbQuery.order('created_at', { ascending: false });
 
-    const { data, error } = await dbQuery;
+    const { data, error, status } = await dbQuery;
+    console.log('📊 Status searchArticles:', status, 'Error:', error, 'Data:', data);
 
     if (error) throw error;
     return data || [];
