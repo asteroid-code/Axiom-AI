@@ -8,22 +8,15 @@ import { Article } from '../../types/article';
 
 const ARTICLES_PER_PAGE = 6;
 
-function ArticleCard({ id, title, content, image_url, created_at, url, trend_score, processed_by_ai, trending_topics }: Article) {
-  const formattedDate = new Date(created_at).toLocaleDateString('en-US', {
+function ArticleCard({ id, title, content, image_url, created_at, source, processed_by_ai, trend_score, trending_topics }: Article) {
+  const formattedDate = new Date(created_at).toLocaleDateString('es-ES', {
     year: 'numeric',
-    month: 'long',
+    month: 'short',
     day: 'numeric',
   });
 
-  const getBadge = () => {
-    if (processed_by_ai) {
-      return <span className="px-3 py-1 bg-green-600 text-white rounded-full text-xs font-medium">AI Processed</span>;
-    }
-    if ((trend_score || 0) > 70) {
-      return <span className="px-3 py-1 bg-yellow-600 text-white rounded-full text-xs font-medium">Trending</span>;
-    }
-    return <span className="px-3 py-1 bg-gray-600 text-white rounded-full text-xs font-medium">Raw</span>;
-  };
+  // Placeholder for estimated reading time (e.g., 200 words per minute)
+  const readingTime = content ? Math.ceil(content.split(' ').length / 200) : 5; // Default 5 mins
 
   return (
     <Link href={`/article/${id}`} className="block glass-card rounded-2xl overflow-hidden hover-lift">
@@ -33,17 +26,27 @@ function ArticleCard({ id, title, content, image_url, created_at, url, trend_sco
         ) : (
           <span className="text-gray-500">No Image</span>
         )}
-        <div className="absolute top-2 left-2">
-          {getBadge()}
+        <div className="absolute top-2 left-2 flex space-x-2">
+          {processed_by_ai && (
+            <span className="px-3 py-1 bg-purple-600 text-white rounded-full text-xs font-medium">AI Processed</span>
+          )}
+          {/* Placeholder for visual quality score */}
+          {(trend_score || 0) > 70 && (
+            <span className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-medium">Premium</span>
+          )}
         </div>
       </div>
       <div className="p-6">
-        <h3 className="text-xl font-bold mb-2 text-primary">{title}</h3>
+        <h3 className="text-xl font-bold mb-2 text-gradient">{title}</h3>
         <p className="text-gray-300 text-sm mb-4 line-clamp-3">{content}</p>
-        <div className="flex items-center justify-between text-gray-500 text-xs">
-          <span>{formattedDate}</span>
+        <div className="flex flex-wrap items-center justify-between text-gray-500 text-xs mt-4 pt-4 border-t border-gray-700">
+          <div className="flex items-center space-x-2">
+            <span>{formattedDate}</span>
+            <span className="mx-1">•</span>
+            <span>{readingTime} min lectura</span>
+          </div>
           {trending_topics && trending_topics.length > 0 && (
-            <span className="ml-2 px-2 py-1 bg-gray-700 rounded-full text-xs">
+            <span className="ml-auto px-2 py-1 bg-gray-700 rounded-full text-xs">
               {trending_topics[0]}
             </span>
           )}
@@ -67,30 +70,15 @@ function ArticleCardSkeleton() {
   );
 }
 
-export default function ArticleGrid() {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+interface ArticleGridProps {
+  articles: Article[];
+  loading: boolean;
+  error: string | null;
+}
 
-  useEffect(() => {
-    async function fetchArticles() {
-      try {
-        setLoading(true);
-        setError(null);
-        const fetchedArticles = await getAllArticles();
-        setArticles(fetchedArticles);
-        setTotalPages(Math.ceil(fetchedArticles.length / ARTICLES_PER_PAGE));
-      } catch (err) {
-        setError('Failed to load articles.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchArticles();
-  }, []);
+export default function ArticleGrid({ articles, loading, error }: ArticleGridProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(articles.length / ARTICLES_PER_PAGE);
 
   const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE;
   const currentArticles = articles.slice(startIndex, startIndex + ARTICLES_PER_PAGE);
@@ -108,27 +96,9 @@ export default function ArticleGrid() {
   };
 
   return (
-    <section className="py-16 bg-black">
+    <section className="py-16 bg-dark"> {/* Changed bg-black to bg-dark for consistency */}
       <div className="container mx-auto px-4">
-        {/* Section Header */}
-        <div className="flex items-center justify-between mb-12">
-          <div>
-            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-              Latest from our{' '}
-              <span className="text-gradient">AI Engines</span>
-            </h2>
-            <p className="text-gray-400 text-lg">
-              Premium content generated by our 8-engine consensus system
-            </p>
-          </div>
-          <button className="hidden lg:flex items-center space-x-2 text-gray-400 hover:text-white transition-colors">
-            <span>View All</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-
+        {/* Section Header - Removed as it's now handled by HomePage */}
         {error && <div className="text-red-500 text-center py-8">{error}</div>}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -158,6 +128,9 @@ export default function ArticleGrid() {
               Next
             </button>
           </div>
+        )}
+        {!loading && articles.length === 0 && (
+          <div className="text-center text-gray-400 py-8">No se encontraron artículos con los filtros aplicados.</div>
         )}
       </div>
     </section>

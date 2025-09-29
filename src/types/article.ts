@@ -1,7 +1,7 @@
 export interface Article {
-  id: string;
+  id: number;
   title: string;
-  content: string;
+  content?: string;
   content_es?: string;
   url: string;
   source: string;
@@ -9,7 +9,7 @@ export interface Article {
   created_at: string;
   processed_by_ai: boolean;
   title_es?: string;
-  related_products?: any[];
+  related_products?: any;
   trend_score?: number;
   trending_topics?: string[];
 }
