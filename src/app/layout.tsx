@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
+import React, { Suspense } from 'react';
 import './globals.css';
 import MainLayout from '@/components/layout/MainLayout';
 
@@ -27,7 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="bg-black text-white min-h-screen">
-        <MainLayout>{children}</MainLayout>
+        <Suspense fallback={<div>Cargando...</div>}>
+          <MainLayout>{children}</MainLayout>
+        </Suspense>
       </body>
     </html>
   )
