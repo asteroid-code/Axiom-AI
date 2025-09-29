@@ -1,7 +1,6 @@
 import { getArticleById } from '@/services/article';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { format } from 'date-fns';
 import Link from 'next/link';
 
 interface ArticleDetailPageProps {
@@ -46,7 +45,7 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
         {/* Metadatos: fuente, fecha de publicación, Badge "AI Processed" */}
         <div className="flex flex-wrap items-center text-gray-400 text-sm mb-6">
           <span className="mr-4">Fuente: {article.source}</span>
-          <span className="mr-4">Publicado: {format(new Date(article.created_at), 'dd/MM/yyyy')}</span>
+          <span className="mr-4">Publicado: {new Date(article.created_at).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
           {article.processed_by_ai && (
             <span className="px-3 py-1 bg-purple-600 text-white text-xs font-semibold rounded-full">
               AI Processed
