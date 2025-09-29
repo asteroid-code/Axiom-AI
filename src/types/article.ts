@@ -2,12 +2,14 @@ export interface Article {
   id: string;
   title: string;
   content: string;
-  content_es: string;
-  source: string;
+  content_es?: string;
   url: string;
-  image_url: string;
-  trend_score: number;
-  trending_topics: string[];
-  processed_by_ai: boolean;
+  source: string;
+  image_url?: string;
   created_at: string;
+  processed_by_ai: boolean;
+  title_es?: string;
+  related_products?: any[];
+  trend_score?: number;
+  trending_topics?: string[];
 }

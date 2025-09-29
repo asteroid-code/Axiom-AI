@@ -3,12 +3,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { getArticles } from '../../services/article';
+import { getAllArticles } from '../../services/article';
 import { Article } from '../../types/article';
 
 const ARTICLES_PER_PAGE = 6;
 
-function ArticleCard({ title, content, image_url, created_at, url, trend_score, processed_by_ai, trending_topics }: Article) {
+function ArticleCard({ id, title, content, image_url, created_at, url, trend_score, processed_by_ai, trending_topics }: Article) {
   const formattedDate = new Date(created_at).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -19,14 +19,14 @@ function ArticleCard({ title, content, image_url, created_at, url, trend_score, 
     if (processed_by_ai) {
       return <span className="px-3 py-1 bg-green-600 text-white rounded-full text-xs font-medium">AI Processed</span>;
     }
-    if (trend_score > 70) {
+    if ((trend_score || 0) > 70) {
       return <span className="px-3 py-1 bg-yellow-600 text-white rounded-full text-xs font-medium">Trending</span>;
     }
     return <span className="px-3 py-1 bg-gray-600 text-white rounded-full text-xs font-medium">Raw</span>;
   };
 
   return (
-    <Link href={url} target="_blank" rel="noopener noreferrer" className="block glass-card rounded-2xl overflow-hidden hover-lift">
+    <Link href={`/article/${id}`} className="block glass-card rounded-2xl overflow-hidden hover-lift">
       <div className="relative w-full h-48 bg-gray-800 flex items-center justify-center">
         {image_url ? (
           <Image src={image_url} alt={title} layout="fill" objectFit="cover" className="rounded-t-lg" />
@@ -79,7 +79,7 @@ export default function ArticleGrid() {
       try {
         setLoading(true);
         setError(null);
-        const fetchedArticles = await getArticles();
+        const fetchedArticles = await getAllArticles();
         setArticles(fetchedArticles);
         setTotalPages(Math.ceil(fetchedArticles.length / ARTICLES_PER_PAGE));
       } catch (err) {
