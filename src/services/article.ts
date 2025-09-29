@@ -32,6 +32,7 @@ export async function getAllArticles(): Promise<Article[]> {
   }
 }
 
+
 export async function getArticleCategories(): Promise<{ category: string; count: number }[]> {
   try {
     const { data, error } = await supabase
